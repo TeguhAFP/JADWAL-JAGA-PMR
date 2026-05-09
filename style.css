@@ -1,0 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap');
+
+body { 
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+}
+
+.font-cute { 
+  font-family: 'Patrick Hand', cursive; 
+}
+
+.bg-grid-paper {
+  background-color: #fcfcfc;
+  background-image: 
+    linear-gradient(#e5e7eb 1px, transparent 1px),
+    linear-gradient(90deg, #e5e7eb 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Custom Scrollbar */
+.scroll-pretty::-webkit-scrollbar { height: 8px; width: 8px; }
+.scroll-pretty::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+.scroll-pretty::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+.scroll-pretty::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
