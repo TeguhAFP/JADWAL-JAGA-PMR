@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PMR Manager</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-50 text-gray-800 h-screen flex flex-col" onload="initApp()">
+
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <div class="flex flex-col sm:flex-row justify-between items-center py-4 gap-4">
+        <h1 class="text-2xl font-extrabold text-pink-600 flex items-center gap-2">
+          <i class="fas fa-award text-pink-500"></i> PMR Manager
+        </h1>
+        
+        <nav class="flex space-x-1 bg-gray-100 p-1 rounded-xl w-full sm:w-auto overflow-x-auto scroll-pretty">
+          <button onclick="switchTab('preview')" id="tab-preview" class="flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap bg-white text-pink-600 shadow-sm">
+            Poster Jadwal
+          </button>
+          <button onclick="switchTab('create')" id="tab-create" class="flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-gray-500">
+            Buat Jadwal
+          </button>
+          <button onclick="switchTab('members')" id="tab-members" class="flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-gray-500">
+            Anggota
+          </button>
+          <button onclick="switchTab('history')" id="tab-history" class="flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-gray-500">
+            Riwayat
+          </button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 overflow-y-auto pb-12">
+    
+    <div id="view-preview" class="p-4 sm:p-6 w-full flex flex-col items-center">
+      <div id="no-schedule-msg" class="flex flex-col items-center justify-center p-10 h-64 hidden">
+        <p class="text-gray-500 mb-4">Belum ada jadwal untuk ditampilkan.</p>
+        <button onclick="switchTab('create')" class="bg-pink-500 hover:bg-pink-600 text-white px-6 py-2 rounded-lg font-medium shadow-md">
+          Buat Jadwal Pertama
+        </button>
+      </div>
+
+      <div id="poster-area" class="w-full flex flex-col items-center hidden">
+        <div class="mb-6 flex gap-4 w-full max-w-[850px] justify-end">
+          <button onclick="downloadImage(this)" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-bold shadow-md flex items-center gap-2 transition-transform hover:scale-105">
+            <i class="fas fa-download"></i> Download Poster
+          </button>
+        </div>
+        <div class="w-full max-w-[900px] overflow-x-auto scroll-pretty pb-6">
+          <div id="poster-canvas-container"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-create" class="p-4 sm:p-6 max-w-4xl mx-auto w-full hidden">
+      <div class="bg-white rounded-2xl shadow-sm border border-purple-100 p-4 sm:p-6">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+          <i class="fas fa-calendar-alt text-purple-500"></i> Buat Jadwal Baru
+        </h2>
+
+        <div class="mb-6">
+          <label class="block text-sm font-bold text-gray-700 mb-2">Tanggal / Judul Jadwal</label>
+          <input type="text" id="form-date" placeholder="Contoh: Senin, 4 Mei 2026" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none">
+        </div>
+
+        <div id="form-groups-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"></div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div class="bg-orange-50 p-4 rounded-xl border border-orange-100">
+            <h3 class="w-full text-center font-bold text-orange-800 mb-3 pb-1 border-b-2 border-orange-200">Tim RSPS</h3>
+            <div id="form-rsps-container" class="space-y-2"></div>
+          </div>
+          <div class="bg-cyan-50 p-4 rounded-xl border border-cyan-100">
+            <h3 class="w-full text-center font-bold text-cyan-800 mb-3 pb-1 border-b-2 border-cyan-200">Tim TANDU</h3>
+            <div id="form-tandu-container" class="space-y-2"></div>
+          </div>
+        </div>
+
+        <div class="mb-8">
+          <label class="block text-sm font-bold text-gray-700 mb-2">Catatan Tambahan</label>
+          <textarea id="form-notes" rows="4" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none"></textarea>
+        </div>
+
+        <button onclick="saveSchedule()" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold text-lg py-4 rounded-xl shadow-lg transition-transform hover:scale-[1.01]">
+          Simpan Jadwal & Update Hitungan Jaga
+        </button>
+      </div>
+    </div>
+
+    <div id="view-members" class="p-4 sm:p-6 max-w-2xl mx-auto w-full hidden">
+      <div class="bg-white rounded-2xl shadow-sm border border-pink-100 p-6">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+          <i class="fas fa-users text-pink-500"></i> Kelola Anggota PMR
+        </h2>
+        
+        <div class="flex gap-2 mb-8">
+          <input type="text" id="new-member-name" placeholder="Ketik nama anggota baru..." class="flex-1 p-3 border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400">
+          <button onclick="addMember()" class="bg-pink-500 hover:bg-pink-600 text-white px-6 py-3 rounded-xl font-medium transition-colors flex items-center gap-2">
+            <i class="fas fa-plus-circle"></i> Tambah
+          </button>
+        </div>
+
+        <div class="space-y-3">
+          <h3 class="font-semibold text-gray-700 mb-4 flex items-center gap-2">
+            <i class="fas fa-medal text-yellow-500"></i> Daftar Anggota & Riwayat Jaga
+          </h3>
+          <div id="members-list" class="space-y-3"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-history" class="p-4 sm:p-6 max-w-2xl mx-auto w-full hidden">
+      <div class="bg-white rounded-2xl shadow-sm border border-blue-100 p-6">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+          <i class="fas fa-history text-blue-500"></i> Riwayat Jadwal
+        </h2>
+        <div id="history-list" class="space-y-4"></div>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
