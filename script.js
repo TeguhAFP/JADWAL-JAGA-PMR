@@ -296,23 +296,52 @@ function renderPoster() {
   `;
 }
 
-// --- Download Poster ---
+// --- Versi Perbaikan untuk HP ---
 async function downloadImage(btn) {
   const canvasElement = document.getElementById('poster-canvas');
   if (canvasElement && window.html2canvas) {
     try {
       const originalText = btn.innerHTML;
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyiapkan Gambar...';
       
-      const canvas = await html2canvas(canvasElement, { scale: 2, backgroundColor: null, useCORS: true });
-      const link = document.createElement('a');
-      link.download = `Jadwal-PMR-${currentSchedule?.date || 'Baru'}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
+      // Menggunakan scale 2 agar gambar tetap tajam
+      const canvas = await html2canvas(canvasElement, { 
+        scale: 2, 
+        backgroundColor: "#ffffff", // Pastikan background putih, bukan transparan
+        useCORS: true,
+        logging: false
+      });
+      
+      const imageData = canvas.toDataURL('image/png');
+      
+      // Deteksi jika pengguna menggunakan HP
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+      if (isMobile) {
+        // Di HP: Buka gambar di jendela baru agar bisa di-"Tekan Lama & Simpan"
+        const newWindow = window.open();
+        newWindow.document.write(`
+          <html>
+            <body style="margin:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#333; font-family:sans-serif;">
+              <p style="color:white; margin:20px; text-align:center;">Tekan lama gambar di bawah,<br>lalu pilih <b>"Simpan Gambar"</b> atau <b>"Download Gambar"</b></p>
+              <img src="${imageData}" style="max-width:100%; height:auto; box-shadow:0 0 20px rgba(0,0,0,0.5);">
+              <button onclick="window.close()" style="margin-top:20px; padding:10px 20px; border-radius:10px; border:none; background:#ec4899; color:white; font-weight:bold;">Kembali ke Aplikasi</button>
+            </body>
+          </html>
+        `);
+      } else {
+        // Di Laptop: Langsung download otomatis
+        const link = document.createElement('a');
+        link.download = `Jadwal-PMR-${currentSchedule?.date || 'Baru'}.png`;
+        link.href = imageData;
+        link.click();
+      }
       
       btn.innerHTML = originalText;
     } catch (err) {
-      alert("Gagal mengunduh gambar.");
+      console.error(err);
+      alert("Gagal memproses gambar. Pastikan semua script termuat sempurna.");
+      btn.innerHTML = '<i class="fas fa-download"></i> Download Poster';
     }
   }
 }
